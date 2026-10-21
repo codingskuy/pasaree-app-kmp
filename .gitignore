@@ -10,3 +10,10 @@ iosApp/build/
 *.hprof
 contract/.cache/
 contract/.venv/
+.schemathesis/
+contract/.schemathesis/
+contract/laporan/
+.kotlin/
+
+# graphify (graf pengetahuan lokal)
+graphify-out/
