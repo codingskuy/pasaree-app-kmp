@@ -10,3 +10,4 @@ Cara menambah ADR:
 Daftar:
 
 - [ADR-0001 — Fondasi teknis](./ADR-0001-fondasi-teknis.md)
+- [ADR-0002 — Tata kelola cabang dan alur kontribusi](./ADR-0002-tata-kelola-cabang.md)
