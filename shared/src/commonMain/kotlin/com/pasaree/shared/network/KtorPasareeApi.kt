@@ -1,5 +1,11 @@
 package com.pasaree.shared.network
 
+import com.pasaree.shared.model.BayarRequest
+import com.pasaree.shared.model.BayarResponse
+import com.pasaree.shared.model.HalamanPesanan
+import com.pasaree.shared.model.KonfirmasiTerimaResponse
+import com.pasaree.shared.model.PesananDetail
+import com.pasaree.shared.model.UlasanBuat
 import com.pasaree.shared.model.CheckoutRequest
 import com.pasaree.shared.model.DaftarTrip
 import com.pasaree.shared.model.GalatApi
@@ -59,6 +65,27 @@ class KtorPasareeApi(private val klien: HttpClient) : PasareeApi {
 
     override suspend fun buatPesanan(req: PesananBuat): PesananDibuat =
         klien.post("pesanan") { contentType(ContentType.Application.Json); setBody(req) }.ambil()
+
+    // Bayar memakai POST: plugin retry hanya GET, jadi tidak pernah diulang otomatis.
+    override suspend fun bayar(pesananId: String, req: BayarRequest): BayarResponse =
+        klien.post("pesanan/$pesananId/bayar") { contentType(ContentType.Application.Json); setBody(req) }.ambil()
+
+    override suspend fun detailPesanan(id: String): PesananDetail = klien.get("pesanan/$id").ambil()
+
+    override suspend fun daftarPesanan(status: String?, limit: Int, cursor: String?): HalamanPesanan =
+        klien.get("pesanan") {
+            status?.let { parameter("status", it) }
+            parameter("limit", limit.coerceIn(1, LIMIT_MAKS))
+            cursor?.let { parameter("cursor", it) }
+        }.ambil()
+
+    override suspend fun konfirmasiTerima(id: String): KonfirmasiTerimaResponse =
+        klien.post("pesanan/$id/konfirmasi-terima").ambil()
+
+    override suspend fun buatUlasan(u: UlasanBuat) {
+        val r = klien.post("ulasan") { contentType(ContentType.Application.Json); setBody(u) }
+        if (!r.status.isSuccess()) throw r.galatDariRespons()
+    }
 
     override suspend fun login(req: LoginRequest): TokenResponse =
         klien.post("auth/login") { contentType(ContentType.Application.Json); setBody(req) }.ambil()

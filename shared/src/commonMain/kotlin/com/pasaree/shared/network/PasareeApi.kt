@@ -1,5 +1,11 @@
 package com.pasaree.shared.network
 
+import com.pasaree.shared.model.BayarRequest
+import com.pasaree.shared.model.BayarResponse
+import com.pasaree.shared.model.HalamanPesanan
+import com.pasaree.shared.model.KonfirmasiTerimaResponse
+import com.pasaree.shared.model.PesananDetail
+import com.pasaree.shared.model.UlasanBuat
 import com.pasaree.shared.model.CheckoutRequest
 import com.pasaree.shared.model.DaftarTrip
 import com.pasaree.shared.model.GalatApi
@@ -51,6 +57,21 @@ interface PasareeApi {
 
     /** `POST /pesanan`. */
     suspend fun buatPesanan(req: PesananBuat): PesananDibuat
+
+    /** `POST /pesanan/{id}/bayar`. TIDAK pernah diulang otomatis; `idempotency_key` wajib. */
+    suspend fun bayar(pesananId: String, req: BayarRequest): BayarResponse
+
+    /** `GET /pesanan/{id}`: detail + timeline + `aksi_tersedia`. */
+    suspend fun detailPesanan(id: String): PesananDetail
+
+    /** `GET /pesanan`. */
+    suspend fun daftarPesanan(status: String? = null, limit: Int = LIMIT_DEFAULT, cursor: String? = null): HalamanPesanan
+
+    /** `POST /pesanan/{id}/konfirmasi-terima`. */
+    suspend fun konfirmasiTerima(id: String): KonfirmasiTerimaResponse
+
+    /** `POST /ulasan` (201 tanpa badan). */
+    suspend fun buatUlasan(u: UlasanBuat)
 
     /** `POST /auth/login`. */
     suspend fun login(req: LoginRequest): TokenResponse
