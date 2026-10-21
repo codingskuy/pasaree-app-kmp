@@ -4,6 +4,7 @@ import com.pasaree.shared.model.AksiPesanan
 import com.pasaree.shared.model.HalamanPesanan
 import com.pasaree.shared.model.KodeGalat
 import com.pasaree.shared.model.PesananDetail
+import com.pasaree.shared.model.ReturRequest
 import com.pasaree.shared.model.StatusPesanan
 import com.pasaree.shared.model.UlasanBuat
 import com.pasaree.shared.network.PasareeApi
@@ -27,6 +28,15 @@ class AmbilPesanan(private val api: PasareeApi) {
 
 class KonfirmasiTerima(private val api: PasareeApi) {
     suspend operator fun invoke(id: String): Result<String> = hasilDomain { api.konfirmasiTerima(id).status }
+}
+
+/** Ajukan retur sub-pesanan; alasan 5-280 karakter (kontrak). Hanya dipanggil bila server menyediakan aksi `ajukan_retur`. */
+class AjukanRetur(private val api: PasareeApi) {
+    suspend operator fun invoke(pesananId: String, subId: String, alasan: String): Result<String> {
+        val a = alasan.trim()
+        if (a.length !in 5..280) return Result.failure(GalatDomain(JenisGalat.VALIDASI, KodeGalat.VALIDASI_GAGAL, "Alasan retur 5 sampai 280 karakter."))
+        return hasilDomain { api.ajukanRetur(pesananId, ReturRequest(subId, a)).status }
+    }
 }
 
 /**

@@ -5,6 +5,8 @@ import com.pasaree.shared.model.BayarResponse
 import com.pasaree.shared.model.HalamanPesanan
 import com.pasaree.shared.model.KonfirmasiTerimaResponse
 import com.pasaree.shared.model.PesananDetail
+import com.pasaree.shared.model.ReturRequest
+import com.pasaree.shared.model.ReturResponse
 import com.pasaree.shared.model.UlasanBuat
 import com.pasaree.shared.model.CheckoutRequest
 import com.pasaree.shared.model.DaftarTrip
@@ -31,6 +33,8 @@ class ApiPalsu : PasareeApi {
     var onUlasan: suspend (UlasanBuat) -> Unit = {}
     var onKonfirmasi: suspend (String) -> KonfirmasiTerimaResponse = { KonfirmasiTerimaResponse("SELESAI") }
 
+    var onRetur: suspend (String, ReturRequest) -> ReturResponse = { _, _ -> ReturResponse("DIKEMBALIKAN") }
+
     val panggilan = mutableListOf<String>()
 
     override suspend fun daftarProduk(q: String?, kategori: String?, tag: String?, lapakSlug: String?, sort: String?, limit: Int, cursor: String?): HalamanProduk =
@@ -51,6 +55,10 @@ class ApiPalsu : PasareeApi {
     override suspend fun detailPesanan(id: String): PesananDetail = onDetailPesanan(id)
     override suspend fun daftarPesanan(status: String?, limit: Int, cursor: String?): HalamanPesanan = HalamanPesanan(emptyList())
     override suspend fun konfirmasiTerima(id: String): KonfirmasiTerimaResponse = onKonfirmasi(id)
+    override suspend fun ajukanRetur(pesananId: String, req: ReturRequest): ReturResponse {
+        panggilan += "retur:$pesananId:${req.subId}"
+        return onRetur(pesananId, req)
+    }
     override suspend fun buatUlasan(u: UlasanBuat) = onUlasan(u)
 
     override suspend fun login(req: LoginRequest): TokenResponse = TokenResponse("tok", "ref", 900)

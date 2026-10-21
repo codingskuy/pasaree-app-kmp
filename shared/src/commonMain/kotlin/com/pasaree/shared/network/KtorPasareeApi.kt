@@ -5,6 +5,8 @@ import com.pasaree.shared.model.BayarResponse
 import com.pasaree.shared.model.HalamanPesanan
 import com.pasaree.shared.model.KonfirmasiTerimaResponse
 import com.pasaree.shared.model.PesananDetail
+import com.pasaree.shared.model.ReturRequest
+import com.pasaree.shared.model.ReturResponse
 import com.pasaree.shared.model.UlasanBuat
 import com.pasaree.shared.model.CheckoutRequest
 import com.pasaree.shared.model.DaftarTrip
@@ -81,6 +83,9 @@ class KtorPasareeApi(private val klien: HttpClient) : PasareeApi {
 
     override suspend fun konfirmasiTerima(id: String): KonfirmasiTerimaResponse =
         klien.post("pesanan/$id/konfirmasi-terima").ambil()
+
+    override suspend fun ajukanRetur(pesananId: String, req: ReturRequest): ReturResponse =
+        klien.post("pesanan/$pesananId/retur") { contentType(ContentType.Application.Json); setBody(req) }.ambil()
 
     override suspend fun buatUlasan(u: UlasanBuat) {
         val r = klien.post("ulasan") { contentType(ContentType.Application.Json); setBody(u) }

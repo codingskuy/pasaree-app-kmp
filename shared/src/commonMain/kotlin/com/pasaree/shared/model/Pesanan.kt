@@ -46,6 +46,8 @@ data class BayarResponse(
 
 @Serializable
 data class SubPesanan(
+    /** Dari kontrak PSR-BE-005 (`sub_id`); dipakai pada `POST /pesanan/{id}/retur`. */
+    @SerialName("sub_id") val subId: String? = null,
     val lapak: LapakRingkas,
     val status: String,
     @SerialName("subtotal_idr") val subtotalIdr: Int,
@@ -93,6 +95,15 @@ data class HalamanPesanan(
     val data: List<PesananRingkas>,
     @SerialName("cursor_lanjut") val cursorLanjut: String? = null,
 )
+
+@Serializable
+data class ReturRequest(
+    @SerialName("sub_id") val subId: String,
+    val alasan: String,
+)
+
+@Serializable
+data class ReturResponse(val status: String)
 
 @Serializable
 data class KonfirmasiTerimaResponse(val status: String)

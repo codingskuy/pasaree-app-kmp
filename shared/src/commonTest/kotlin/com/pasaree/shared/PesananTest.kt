@@ -180,6 +180,19 @@ class StatusPesananTest {
     }
 }
 
+class ReturTest {
+    @Test
+    fun alasanHarus5sampai280_dan_dikirimDenganSubId() = runTest {
+        val api = ApiPalsu()
+        val retur = com.pasaree.shared.domain.AjukanRetur(api)
+        assertTrue(retur("PSR-1", "SUB-1", "abc").isFailure)
+        assertTrue(retur("PSR-1", "SUB-1", "x".repeat(281)).isFailure)
+        assertTrue(api.panggilan.isEmpty(), "alasan tidak valid tidak dikirim")
+        assertEquals("DIKEMBALIKAN", retur("PSR-1", "SUB-1", "kemasan bocor").getOrThrow())
+        assertEquals(listOf("retur:PSR-1:SUB-1"), api.panggilan)
+    }
+}
+
 class UlasanTest {
     private val selesai = detail(StatusPesanan.SELESAI, timeline = listOf(TitikTimeline("SELESAI", "2026-10-04T10:00:00Z")))
 

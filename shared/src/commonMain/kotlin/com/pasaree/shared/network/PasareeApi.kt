@@ -5,6 +5,8 @@ import com.pasaree.shared.model.BayarResponse
 import com.pasaree.shared.model.HalamanPesanan
 import com.pasaree.shared.model.KonfirmasiTerimaResponse
 import com.pasaree.shared.model.PesananDetail
+import com.pasaree.shared.model.ReturRequest
+import com.pasaree.shared.model.ReturResponse
 import com.pasaree.shared.model.UlasanBuat
 import com.pasaree.shared.model.CheckoutRequest
 import com.pasaree.shared.model.DaftarTrip
@@ -69,6 +71,9 @@ interface PasareeApi {
 
     /** `POST /pesanan/{id}/konfirmasi-terima`. */
     suspend fun konfirmasiTerima(id: String): KonfirmasiTerimaResponse
+
+    /** `POST /pesanan/{id}/retur` (kontrak PSR-BE-005, backend PR #10). */
+    suspend fun ajukanRetur(pesananId: String, req: ReturRequest): ReturResponse
 
     /** `POST /ulasan` (201 tanpa badan). */
     suspend fun buatUlasan(u: UlasanBuat)
