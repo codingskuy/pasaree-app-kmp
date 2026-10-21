@@ -20,7 +20,7 @@ class RuteTest {
 
     @Test
     fun rute_roundTripSerialisasi_untukPemulihanBackStack() {
-        val asli: List<NavKey> = listOf(Beranda, Pencarian("sambal"), DetailProduk("01J0ABC"), Keranjang, Checkout("TRP-1", "TITIK-05"), Bayar("PSR-1"), Masuk)
+        val asli: List<NavKey> = listOf(Beranda, Pencarian("sambal"), DetailProduk("01J0ABC"), Keranjang, Checkout("TRP-1", "TITIK-05"), Bayar("PSR-1"), Masuk, StatusPesanan("PSR-1"), PesananSaya, Ulasan("PSR-1", "P1"))
         val teks = json.encodeToString(kotlinx.serialization.builtins.ListSerializer(kotlinx.serialization.PolymorphicSerializer(NavKey::class)), asli)
         val pulih = json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(kotlinx.serialization.PolymorphicSerializer(NavKey::class)), teks)
         assertEquals(asli, pulih)

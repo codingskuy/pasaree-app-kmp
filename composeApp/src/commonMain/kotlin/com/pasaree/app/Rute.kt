@@ -18,6 +18,9 @@ import kotlinx.serialization.modules.subclass
 @Serializable data class Checkout(val tripId: String, val titikId: String) : NavKey
 @Serializable data class Bayar(val pesananId: String) : NavKey
 @Serializable data object Masuk : NavKey
+@Serializable data class StatusPesanan(val pesananId: String) : NavKey
+@Serializable data object PesananSaya : NavKey
+@Serializable data class Ulasan(val pesananId: String, val produkId: String) : NavKey
 
 /**
  * Konfigurasi serializer back-stack: dibutuhkan agar back-stack dapat disimpan/dipulihkan
@@ -33,6 +36,9 @@ val KonfigurasiBackStack = SavedStateConfiguration {
             subclass(Checkout::class)
             subclass(Bayar::class)
             subclass(Masuk::class)
+            subclass(StatusPesanan::class)
+            subclass(PesananSaya::class)
+            subclass(Ulasan::class)
         }
     }
 }
