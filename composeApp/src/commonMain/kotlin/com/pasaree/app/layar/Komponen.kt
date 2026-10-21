@@ -11,6 +11,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import com.pasaree.app.GrafApp
+import com.pasaree.shared.sync.StatusSinkron
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -56,5 +62,21 @@ fun KartuProduk(produk: ProdukRingkas, buka: () -> Unit, modifier: Modifier = Mo
                 Text("Rating ${produk.ratingRata}", style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
+}
+
+/** Banner luring: tampil saat `sync.status == LURING`; tombol "Coba lagi" memicu `SyncWorker.now()`. */
+@Composable
+fun BannerLuring(graf: GrafApp, modifier: Modifier = Modifier) {
+    val status by graf.sync.status.collectAsState()
+    val scope = rememberCoroutineScope()
+    if (status != StatusSinkron.LURING) return
+    Row(
+        modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).testTag("banner_luring"),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("Anda sedang luring. Data dari penyimpanan perangkat.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error, modifier = Modifier.weight(1f))
+        Button(onClick = { scope.launch { graf.sync.now() } }, modifier = Modifier.testTag("tombol_coba_lagi_sinkron")) { Text("Coba lagi") }
     }
 }

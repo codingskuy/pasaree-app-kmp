@@ -82,6 +82,7 @@ fun LayarBeranda(graf: GrafApp, keCari: (String) -> Unit, keDetail: (String) -> 
             TextButton(onClick = keKeranjang, modifier = Modifier.testTag("tombol_keranjang")) { Text("Keranjang") }
         }) }) { isi ->
         Column(Modifier.padding(isi)) {
+            BannerLuring(graf)
             Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = kata,

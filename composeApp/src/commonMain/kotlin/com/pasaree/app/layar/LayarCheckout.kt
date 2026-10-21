@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LayarCheckout(graf: GrafApp, tripId: String, titikId: String, keBayar: (String) -> Unit, kembali: () -> Unit) {
-    val ctrl = remember(graf, tripId, titikId) { CheckoutController(graf.api, tripId, titikId) }
+    val ctrl = remember(graf, tripId, titikId) { CheckoutController(graf.api, tripId, titikId, praSinkron = { graf.sync.pastikanKeranjangTersinkron() }) }
     val state by ctrl.state.collectAsState()
     val scope = rememberCoroutineScope()
 

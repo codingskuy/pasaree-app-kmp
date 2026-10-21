@@ -27,7 +27,7 @@ import com.pasaree.app.tema.TemaPasaree
  * dan hanya dipakai sebagai back-stack awal; setelahnya back-stack dipulihkan dari state tersimpan.
  */
 @Composable
-fun BeliApp(graf: GrafApp = GrafApp.bawaan, produkIdTautan: String? = null) {
+fun BeliApp(graf: GrafApp, produkIdTautan: String? = null) {
     TemaPasaree {
         val tumpukan = rememberNavBackStack(KonfigurasiBackStack, *backStackAwal(produkIdTautan).toTypedArray())
         var terakhirDiproses by remember { mutableStateOf(produkIdTautan) }
@@ -38,6 +38,8 @@ fun BeliApp(graf: GrafApp = GrafApp.bawaan, produkIdTautan: String? = null) {
                 terakhirDiproses = produkIdTautan
             }
         }
+        // Sinkronisasi saat aplikasi dibuka: kuras antrean aksi + tarik delta katalog.
+        LaunchedEffect(graf) { graf.sync.now() }
         val kembali: () -> Unit = { tumpukan.removeLastOrNull() }
         NavDisplay(
             backStack = tumpukan,
