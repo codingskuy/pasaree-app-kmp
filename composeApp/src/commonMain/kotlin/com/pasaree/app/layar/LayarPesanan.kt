@@ -44,9 +44,9 @@ import com.pasaree.shared.domain.GalatDomain
 import com.pasaree.shared.domain.JenisGalat
 import com.pasaree.shared.domain.aksiTampil
 import com.pasaree.shared.domain.bisaMengulas
-import com.pasaree.shared.domain.formatHitungMundur
+import com.pasaree.shared.domain.batasBayarDefault
+import com.pasaree.shared.domain.hitungMundurSekarang
 import com.pasaree.shared.domain.pantauPesanan
-import com.pasaree.shared.domain.sisaBatasBayar
 import com.pasaree.shared.domain.susunTimeline
 import com.pasaree.shared.model.MetodeBayar
 import com.pasaree.shared.model.PesananDetail
@@ -56,18 +56,15 @@ import com.pasaree.shared.model.UlasanBuat
 import com.pasaree.shared.util.formatIdr
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlin.time.Duration.Companion.minutes
 
 /** Hitung mundur berdetak tiap detik dari [batasIso]; null bila tidak ada batas. */
 @Composable
 private fun rememberHitungMundur(batasIso: String?): String? {
-    var sekarang by remember { mutableStateOf(Clock.System.now()) }
+    var detak by remember { mutableStateOf(0) }
     LaunchedEffect(batasIso) {
-        while (batasIso != null) { sekarang = Clock.System.now(); delay(1_000) }
+        while (batasIso != null) { delay(1_000); detak++ }
     }
-    return batasIso?.let { formatHitungMundur(sisaBatasBayar(it, sekarang)) }
+    return batasIso?.let { detak.let { _ -> hitungMundurSekarang(it) } }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +80,7 @@ fun LayarBayar(graf: GrafApp, pesananId: String, keStatus: (String) -> Unit, keM
     LaunchedEffect(pesananId) {
         // Batas bayar 30 menit: dari detail pesanan bila server menyertakannya, jika tidak dari waktu dibuat + 30 menit (asumsi).
         graf.ambilPesanan(pesananId).onSuccess { d ->
-            batas = d.batasBayarHingga ?: runCatching { (Instant.parse(d.dibuatPada) + 30.minutes).toString() }.getOrNull()
+            batas = d.batasBayarHingga ?: batasBayarDefault(d.dibuatPada)
         }
     }
 
@@ -141,7 +138,7 @@ fun LayarStatusPesanan(graf: GrafApp, pesananId: String, keUlasan: (String) -> U
         }
     }
     val batas = detail?.takeIf { it.status == StatusPesanan.DIPESAN }?.let { d ->
-        d.batasBayarHingga ?: runCatching { (Instant.parse(d.dibuatPada) + 30.minutes).toString() }.getOrNull()
+        d.batasBayarHingga ?: batasBayarDefault(d.dibuatPada)
     }
     val hitungMundur = rememberHitungMundur(batas)
 

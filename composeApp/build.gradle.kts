@@ -20,7 +20,6 @@ kotlin {
             implementation(libs.navigation3.ui)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.datetime)
         }
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:1.9.3")

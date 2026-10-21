@@ -57,6 +57,13 @@ fun pantauPesanan(api: PasareeApi, id: String, intervalMs: Long = INTERVAL_POLL_
 fun sisaBatasBayar(batasIso: String, sekarang: Instant = Clock.System.now()): Duration =
     runCatching { (Instant.parse(batasIso) - sekarang).coerceAtLeast(Duration.ZERO) }.getOrDefault(Duration.ZERO)
 
+/** Batas bayar 30 menit sejak [dibuatIso] (asumsi bila server tidak mengirim `batas_bayar_hingga`). */
+fun batasBayarDefault(dibuatIso: String): String? =
+    runCatching { (Instant.parse(dibuatIso) + 30.minutes).toString() }.getOrNull()
+
+/** Hitung mundur "mm:ss" terhadap jam sekarang (dipakai UI agar tidak bergantung pada kotlinx-datetime). */
+fun hitungMundurSekarang(batasIso: String): String = formatHitungMundur(sisaBatasBayar(batasIso))
+
 /** Format hitung mundur "mm:ss". */
 fun formatHitungMundur(d: Duration): String {
     val total = d.inWholeSeconds.coerceAtLeast(0)
