@@ -74,10 +74,10 @@ private fun DaftarProduk(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LayarBeranda(graf: GrafApp, keCari: (String) -> Unit, keDetail: (String) -> Unit) {
+fun LayarBeranda(graf: GrafApp, keCari: (String) -> Unit, keDetail: (String) -> Unit, keKeranjang: () -> Unit) {
     val pager = remember(graf) { PagerProduk(graf.cariProduk, KriteriaKatalog(sort = "terbaru")) }
     var kata by rememberSaveable { mutableStateOf("") }
-    Scaffold(topBar = { TopAppBar(title = { Text("Pasaree") }) }) { isi ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Pasaree") }, actions = { TextButton(onClick = keKeranjang, modifier = Modifier.testTag("tombol_keranjang")) { Text("Keranjang") } }) }) { isi ->
         Column(Modifier.padding(isi)) {
             Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(

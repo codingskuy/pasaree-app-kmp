@@ -9,11 +9,15 @@ import kotlinx.serialization.modules.subclass
 
 /**
  * Rute type-safe Navigation3 sesuai graf `produk/30-modul-KMP-bersama.md` §4.
- * Rute lanjutan (Keranjang, Checkout, Bayar, ...) ditambahkan oleh tiket berikutnya.
+ * Rute lanjutan (StatusPesanan, PesananSaya, ...) ditambahkan oleh tiket berikutnya.
  */
 @Serializable data object Beranda : NavKey
 @Serializable data class Pencarian(val kataKunci: String = "") : NavKey
 @Serializable data class DetailProduk(val produkId: String) : NavKey
+@Serializable data object Keranjang : NavKey
+@Serializable data class Checkout(val tripId: String, val titikId: String) : NavKey
+@Serializable data class Bayar(val pesananId: String) : NavKey
+@Serializable data object Masuk : NavKey
 
 /**
  * Konfigurasi serializer back-stack: dibutuhkan agar back-stack dapat disimpan/dipulihkan
@@ -25,6 +29,10 @@ val KonfigurasiBackStack = SavedStateConfiguration {
             subclass(Beranda::class)
             subclass(Pencarian::class)
             subclass(DetailProduk::class)
+            subclass(Keranjang::class)
+            subclass(Checkout::class)
+            subclass(Bayar::class)
+            subclass(Masuk::class)
         }
     }
 }

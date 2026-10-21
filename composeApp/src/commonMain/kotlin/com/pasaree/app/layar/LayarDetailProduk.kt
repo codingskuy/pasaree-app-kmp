@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,9 +34,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.pasaree.app.GrafApp
 import com.pasaree.shared.domain.GalatDomain
+import com.pasaree.shared.domain.JenisGalat
 import com.pasaree.shared.model.ProdukTayang
 import com.pasaree.shared.model.TripLumbung
 import com.pasaree.shared.util.formatIdr
+import kotlinx.coroutines.launch
 
 private sealed interface StateDetail {
     data object Memuat : StateDetail
@@ -45,7 +48,7 @@ private sealed interface StateDetail {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LayarDetailProduk(graf: GrafApp, produkId: String, kembali: () -> Unit) {
+fun LayarDetailProduk(graf: GrafApp, produkId: String, keKeranjang: () -> Unit, kembali: () -> Unit) {
     var state by remember(produkId) { mutableStateOf<StateDetail>(StateDetail.Memuat) }
     var percobaan by remember(produkId) { mutableIntStateOf(0) }
     LaunchedEffect(produkId, percobaan) {
@@ -65,14 +68,16 @@ fun LayarDetailProduk(graf: GrafApp, produkId: String, kembali: () -> Unit) {
             when (val s = state) {
                 StateDetail.Memuat -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 is StateDetail.Gagal -> KotakGalat(s.galat, cobaLagi = { percobaan++ })
-                is StateDetail.Siap -> IsiDetail(s.produk)
+                is StateDetail.Siap -> IsiDetail(s.produk, graf, keKeranjang)
             }
         }
     }
 }
 
 @Composable
-private fun IsiDetail(p: ProdukTayang) {
+private fun IsiDetail(p: ProdukTayang, graf: GrafApp, keKeranjang: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var pesan by remember(p.id) { mutableStateOf<String?>(null) }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp).testTag("detail_produk"),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -99,12 +104,23 @@ private fun IsiDetail(p: ProdukTayang) {
                     Text(if (habis) "Stok habis" else "Stok: $stok", style = MaterialTheme.typography.bodySmall,
                         color = if (habis) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface)
                 }
-                // Tombol "Tambah ke keranjang" ditambahkan oleh PSR-KMP-003; varian stok 0 tidak akan pernah aktif.
-                Button(onClick = {}, enabled = false, modifier = Modifier.testTag("tambah_${v.id}")) {
-                    Text(if (habis) "Habis" else "Segera")
-                }
+                // Varian stok 0 tidak dapat masuk keranjang (tombol nonaktif + ditolak di domain).
+                Button(
+                    onClick = {
+                        scope.launch {
+                            graf.keranjang.tambah(p, v.id).fold(
+                                onSuccess = { pesan = "Ditambahkan ke keranjang." },
+                                onFailure = { e -> pesan = if ((e as? GalatDomain)?.jenis == JenisGalat.AUTENTIKASI) "Masuk dulu untuk menyimpan keranjang di akun (item tersimpan di perangkat)." else pesanGalat(e as GalatDomain) },
+                            )
+                        }
+                    },
+                    enabled = !habis,
+                    modifier = Modifier.testTag("tambah_${v.id}"),
+                ) { Text(if (habis) "Habis" else "Tambah") }
             }
         }
+        pesan?.let { Text(it, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("pesan_keranjang")) }
+        TextButton(onClick = keKeranjang, modifier = Modifier.testTag("tombol_lihat_keranjang")) { Text("Lihat keranjang") }
         HorizontalDivider()
         Text("Trip Lumbung tersedia", style = MaterialTheme.typography.headlineMedium)
         if (p.tripTersedia.isEmpty()) {
