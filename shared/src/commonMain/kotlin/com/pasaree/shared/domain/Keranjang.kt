@@ -4,6 +4,8 @@ import com.pasaree.shared.model.KeranjangUbah
 import com.pasaree.shared.model.KodeGalat
 import com.pasaree.shared.model.ProdukTayang
 import com.pasaree.shared.network.PasareeApi
+import com.pasaree.shared.sync.AntreanAksi
+import com.pasaree.shared.sync.JenisAksi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -76,6 +78,10 @@ data class RingkasanServer(
 class KeranjangRepository(
     private val store: KeranjangStore,
     private val api: PasareeApi,
+    /** Antrean aksi offline; null = tanpa antrean (galat jaringan dikembalikan ke pemanggil). */
+    private val antrean: AntreanAksi? = null,
+    /** Dipanggil saat penulisan ke server gagal karena jaringan (banner luring). */
+    private val onLuring: () -> Unit = {},
 ) {
     val item: StateFlow<List<ItemKeranjang>> get() = store.item
     private val _ringkasan = MutableStateFlow(RingkasanServer())
@@ -119,10 +125,21 @@ class KeranjangRepository(
         return sinkron(varianId, baru)
     }
 
-    private suspend fun sinkron(varianId: String, qty: Int): Result<Unit> =
-        hasilDomain { api.ubahKeranjang(KeranjangUbah(varianId, qty)) }.map { server ->
-            _ringkasan.value = RingkasanServer(server.subtotalIdr, server.peringatanStok)
+    /**
+     * Sinkron ke server. Bila luring dan ada [antrean], aksi diantre (aksi bayar TIDAK pernah diantre) dan
+     * penulisan lokal dianggap berhasil; SyncWorker mengirimnya kemudian.
+     */
+    private suspend fun sinkron(varianId: String, qty: Int): Result<Unit> {
+        val hasil = hasilDomain { api.ubahKeranjang(KeranjangUbah(varianId, qty)) }
+        hasil.onSuccess { server -> _ringkasan.value = RingkasanServer(server.subtotalIdr, server.peringatanStok) }
+        val g = hasil.exceptionOrNull() as? GalatDomain
+        if (g != null && g.jenis == JenisGalat.JARINGAN && antrean != null) {
+            antrean.tambah(JenisAksi.UBAH_KERANJANG, varianId, qty)
+            onLuring()
+            return Result.success(Unit)
         }
+        return hasil.map { }
+    }
 
     private fun validasi(pesan: String) = GalatDomain(JenisGalat.VALIDASI, KodeGalat.VALIDASI_GAGAL, pesan)
 }

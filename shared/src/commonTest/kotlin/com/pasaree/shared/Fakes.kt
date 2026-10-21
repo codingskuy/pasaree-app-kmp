@@ -35,12 +35,18 @@ class ApiPalsu : PasareeApi {
 
     var onRetur: suspend (String, ReturRequest) -> ReturResponse = { _, _ -> ReturResponse("DIKEMBALIKAN") }
 
+    var onAmbilKeranjang: suspend () -> KeranjangServer = { KeranjangServer(emptyList(), 0) }
+
     val panggilan = mutableListOf<String>()
 
-    override suspend fun daftarProduk(q: String?, kategori: String?, tag: String?, lapakSlug: String?, sort: String?, limit: Int, cursor: String?): HalamanProduk =
-        HalamanProduk(emptyList())
+    var onDaftarProduk: suspend (String?) -> HalamanProduk = { HalamanProduk(emptyList()) }
+
+    override suspend fun daftarProduk(q: String?, kategori: String?, tag: String?, lapakSlug: String?, sort: String?, limit: Int, cursor: String?, diperbaruiSejak: String?): HalamanProduk =
+        onDaftarProduk(diperbaruiSejak)
 
     override suspend fun detailProduk(id: String): ProdukTayang = error("tidak dipakai")
+
+    override suspend fun ambilKeranjang(): KeranjangServer = onAmbilKeranjang()
 
     override suspend fun ubahKeranjang(ubah: KeranjangUbah): KeranjangServer {
         panggilan += "ubahKeranjang:${ubah.varianId}:${ubah.qty}"

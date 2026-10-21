@@ -2,6 +2,7 @@ package com.pasaree.shared.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class LapakRingkas(
@@ -18,6 +19,8 @@ data class ProdukRingkas(
     @SerialName("rating_rata") val ratingRata: Double,
     val lapak: LapakRingkas,
     @SerialName("media_utama") val mediaUtama: String? = null,
+    /** ASUMSI (belum di openapi.yaml): dasar sinkron delta. */
+    @SerialName("diperbarui_pada") val diperbaruiPada: String? = null,
 )
 
 @Serializable
@@ -25,6 +28,10 @@ data class HalamanProduk(
     val data: List<ProdukRingkas>,
     @SerialName("cursor_lanjut") val cursorLanjut: String? = null,
     @SerialName("harga_berubah") val hargaBerubah: Boolean = false,
+    /** Tidak dikirim server: halaman disajikan dari cache lokal. */
+    @Transient val dariCache: Boolean = false,
+    /** Tidak dikirim server: cache sudah melewati TTL (hanya untuk tampilan luring). */
+    @Transient val basi: Boolean = false,
 )
 
 @Serializable

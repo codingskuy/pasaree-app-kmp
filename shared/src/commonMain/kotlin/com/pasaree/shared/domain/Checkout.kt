@@ -42,6 +42,8 @@ class CheckoutController(
     private val titikId: String,
     private val voucher: String? = null,
     private val sekarang: () -> Instant = { Clock.System.now() },
+    /** Dipanggil sebelum pratinjau: pastikan keranjang lokal sudah sampai ke server (pesanan dibuat dari keranjang server). */
+    private val praSinkron: suspend () -> Result<Unit> = { Result.success(Unit) },
 ) {
     private val _state = MutableStateFlow<StateCheckout>(StateCheckout.Belum)
     val state: StateFlow<StateCheckout> = _state.asStateFlow()
@@ -50,6 +52,7 @@ class CheckoutController(
 
     suspend fun muatPratinjau() {
         _state.value = StateCheckout.Memuat
+        praSinkron().onFailure { _state.value = StateCheckout.Gagal(it.keGalatDomain()); return }
         hasilDomain { api.pratinjauCheckout(permintaan) }.fold(
             onSuccess = { _state.value = StateCheckout.Siap(it) },
             onFailure = { tanganiGagalPratinjau(it.keGalatDomain()) },

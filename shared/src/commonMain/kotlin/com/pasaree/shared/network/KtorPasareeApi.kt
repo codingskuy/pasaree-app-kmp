@@ -42,6 +42,7 @@ class KtorPasareeApi(private val klien: HttpClient) : PasareeApi {
         sort: String?,
         limit: Int,
         cursor: String?,
+        diperbaruiSejak: String?,
     ): HalamanProduk = klien.get("katalog/produk") {
         q?.takeIf { it.isNotBlank() }?.let { parameter("q", it) }
         kategori?.let { parameter("kategori", it) }
@@ -50,10 +51,13 @@ class KtorPasareeApi(private val klien: HttpClient) : PasareeApi {
         sort?.let { parameter("sort", it) }
         parameter("limit", limit.coerceIn(1, LIMIT_MAKS))
         cursor?.let { parameter("cursor", it) }
+        diperbaruiSejak?.let { parameter("diperbarui_sejak", it) }
     }.ambil()
 
     override suspend fun detailProduk(id: String): ProdukTayang =
         klien.get("katalog/produk/$id").ambil()
+
+    override suspend fun ambilKeranjang(): KeranjangServer = klien.get("keranjang").ambil()
 
     // PUT bersifat idempoten (server menimpa qty), tetapi plugin retry hanya mengulang GET: pengulangan
     // keranjang ditangani antrean aksi di PSR-KMP-005, bukan pengulangan buta di lapisan HTTP.

@@ -43,10 +43,15 @@ interface PasareeApi {
         sort: String? = null,
         limit: Int = LIMIT_DEFAULT,
         cursor: String? = null,
+        /** ASUMSI (belum di openapi.yaml): hanya produk diperbarui sejak waktu ISO ini (`diperbarui_pada`). */
+        diperbaruiSejak: String? = null,
     ): HalamanProduk
 
     /** `GET /katalog/produk/{id}`. */
     suspend fun detailProduk(id: String): ProdukTayang
+
+    /** `GET /keranjang` (kontrak PSR-BE-005, backend PR #10): keranjang akun untuk sinkron lintas perangkat. */
+    suspend fun ambilKeranjang(): KeranjangServer
 
     /** `PUT /keranjang` (qty 0 = hapus). Idempoten: server menimpa qty varian. */
     suspend fun ubahKeranjang(ubah: KeranjangUbah): KeranjangServer
