@@ -1,5 +1,11 @@
 package com.pasaree.shared
 
+import com.pasaree.shared.model.BayarRequest
+import com.pasaree.shared.model.BayarResponse
+import com.pasaree.shared.model.HalamanPesanan
+import com.pasaree.shared.model.KonfirmasiTerimaResponse
+import com.pasaree.shared.model.PesananDetail
+import com.pasaree.shared.model.UlasanBuat
 import com.pasaree.shared.model.CheckoutRequest
 import com.pasaree.shared.model.DaftarTrip
 import com.pasaree.shared.model.HalamanProduk
@@ -20,6 +26,11 @@ class ApiPalsu : PasareeApi {
     var onPratinjau: suspend (CheckoutRequest) -> PratinjauCheckout = { error("pratinjau tidak disiapkan") }
     var onBuatPesanan: suspend (PesananBuat) -> PesananDibuat = { error("buatPesanan tidak disiapkan") }
 
+    var onBayar: suspend (String, BayarRequest) -> BayarResponse = { _, _ -> BayarResponse("DIBAYAR", "ESC-1") }
+    var onDetailPesanan: suspend (String) -> PesananDetail = { error("detailPesanan tidak disiapkan") }
+    var onUlasan: suspend (UlasanBuat) -> Unit = {}
+    var onKonfirmasi: suspend (String) -> KonfirmasiTerimaResponse = { KonfirmasiTerimaResponse("SELESAI") }
+
     val panggilan = mutableListOf<String>()
 
     override suspend fun daftarProduk(q: String?, kategori: String?, tag: String?, lapakSlug: String?, sort: String?, limit: Int, cursor: String?): HalamanProduk =
@@ -31,6 +42,16 @@ class ApiPalsu : PasareeApi {
         panggilan += "ubahKeranjang:${ubah.varianId}:${ubah.qty}"
         return onUbahKeranjang(ubah)
     }
+
+    override suspend fun bayar(pesananId: String, req: BayarRequest): BayarResponse {
+        panggilan += "bayar:$pesananId:${req.idempotencyKey}"
+        return onBayar(pesananId, req)
+    }
+
+    override suspend fun detailPesanan(id: String): PesananDetail = onDetailPesanan(id)
+    override suspend fun daftarPesanan(status: String?, limit: Int, cursor: String?): HalamanPesanan = HalamanPesanan(emptyList())
+    override suspend fun konfirmasiTerima(id: String): KonfirmasiTerimaResponse = onKonfirmasi(id)
+    override suspend fun buatUlasan(u: UlasanBuat) = onUlasan(u)
 
     override suspend fun login(req: LoginRequest): TokenResponse = TokenResponse("tok", "ref", 900)
 
