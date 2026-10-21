@@ -13,3 +13,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "pasaree-app-kmp"
 include(":composeApp")
+include(":shared")

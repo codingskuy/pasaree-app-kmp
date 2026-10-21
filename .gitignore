@@ -11,3 +11,4 @@ iosApp/build/
 
 # graphify (graf pengetahuan lokal)
 graphify-out/
+.kotlin/
