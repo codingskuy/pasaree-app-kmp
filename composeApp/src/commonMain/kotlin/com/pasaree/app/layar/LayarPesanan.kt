@@ -131,6 +131,7 @@ fun LayarStatusPesanan(graf: GrafApp, pesananId: String, keUlasan: (String) -> U
     var galat by remember { mutableStateOf<GalatDomain?>(null) }
     var muatUlang by remember { mutableStateOf(0) }
     var pesan by remember { mutableStateOf<String?>(null) }
+    var alasanRetur by rememberSaveable { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
     // Poll maksimal tiap 15 detik; berhenti di status akhir.
@@ -180,8 +181,19 @@ fun LayarStatusPesanan(graf: GrafApp, pesananId: String, keUlasan: (String) -> U
                 ) { Text("Konfirmasi pesanan diterima") }
             }
             if (aksi.ajukanRetur) {
-                // Endpoint retur belum ada di openapi.yaml (asumsi): hanya informasi sampai kontrak tersedia.
-                Text("Retur tersedia untuk pesanan ini (non-pangan segar, maks 1x24 jam). Pengajuan akan aktif setelah endpoint retur tersedia.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("info_retur"))
+                // Retur (non-pangan segar, maks 1x24 jam) hanya bila server mengembalikan aksi `ajukan_retur`.
+                Text("Retur tersedia (non-pangan segar, maks 1x24 jam setelah diterima).", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("info_retur"))
+                OutlinedTextField(alasanRetur, { alasanRetur = it }, label = { Text("Alasan retur (5-280 karakter)") }, modifier = Modifier.fillMaxWidth().testTag("input_alasan_retur"))
+                d.subPesanan.filter { it.subId != null && it.status == StatusPesanan.DITERIMA_PEMBELI }.forEach { sub ->
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                graf.ajukanRetur(d.id, sub.subId!!, alasanRetur).fold(onSuccess = { pesan = "Retur diajukan. Status: $it"; muatUlang++ }, onFailure = { pesan = pesanGalat(it as GalatDomain) })
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("tombol_retur_${sub.subId}"),
+                    ) { Text("Ajukan retur: ${sub.lapak.namaLapak}") }
+                }
             }
             pesan?.let { Text(it, modifier = Modifier.testTag("pesan_aksi")) }
             if (bisaMengulas(d)) {

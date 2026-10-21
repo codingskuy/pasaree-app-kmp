@@ -1,6 +1,7 @@
 package com.pasaree.app
 
 import com.pasaree.shared.domain.AmbilDetailProduk
+import com.pasaree.shared.domain.AjukanRetur
 import com.pasaree.shared.domain.AmbilPesanan
 import com.pasaree.shared.domain.BayarPesanan
 import com.pasaree.shared.domain.KirimUlasan
@@ -32,6 +33,7 @@ class GrafApp(
     val ambilPesanan = AmbilPesanan(api)
     val konfirmasiTerima = KonfirmasiTerima(api)
     val kirimUlasan = KirimUlasan(api)
+    val ajukanRetur = AjukanRetur(api)
 
     companion object {
         /** Instance proses; bertahan saat Activity dibuat ulang (rotasi). */
